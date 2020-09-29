@@ -129,38 +129,9 @@ class PartitioningMCISFinder(object):
         return self.count
 
 
-def check_valid_graph_types(G, H):
-    if G.is_directed() or H.is_directed():
-        msg = "not implemented for directed graphs"
-        raise nx.NetworkXNotImplemented(msg)
-    if G.is_multigraph() or H.is_multigraph():
-        msg = "not implemented for multigraphs"
-        raise nx.NetworkXNotImplemented(msg)
-    if nx.number_of_selfloops(G) or nx.number_of_selfloops(H):
-        msg = "not implemented for graphs with self-loops"
-        raise nx.NetworkXNotImplemented(msg)
-
-
-def check_valid_labels(G, H, node_label, edge_label):
-    """Raise an exception if labels are invalid
-
-    An exception is raised if any edge label is None or if accessing any label
-    raises an exception.
-    """
-    for graph in G, H:
-        for edge in graph.edges():
-            if edge_label(graph.edges[edge]) is None:
-                raise ValueError(f"Edge {edge} has label None")
-        for node in graph.nodes():
-            # Make sure that accessing the node does not raise an exception
-            node_label(graph.nodes[node])
-
-
 def maximal_common_subgraphs(G, H, connected=False, node_label=None, edge_label=None):
-    check_valid_graph_types(G, H)
     node_label = _label_function(node_label)
     edge_label = _label_function(edge_label)
-    check_valid_labels(G, H, node_label, edge_label)
     return PartitioningMCISFinder(
         G, H, connected, node_label, edge_label
     ).find_maximal_common_subgraphs()
