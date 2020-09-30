@@ -100,8 +100,6 @@ class PartitioningMCISFinder(object):
             self.search(new_label_classes, new_rejected, assignments)
             del assignments[v]
         label_class.H_nodes[:] = H_nodes
-        keys = set(assignments.keys())
-        vals = set(assignments.values())
         new_label_classes = [lc for lc in label_classes if lc.G_nodes]
         newly_rejected = LabelClass(label_class.is_adjacent)
         newly_rejected.G_nodes.append(v)
