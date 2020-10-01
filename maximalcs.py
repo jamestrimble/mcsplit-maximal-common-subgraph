@@ -81,14 +81,13 @@ class PartitioningMCISFinder(object):
     def search(self, label_classes, rejected, assignments):
         label_class = self.select_label_class(label_classes, len(assignments))
         if label_class is None:
-            if assignments:
-                if self.connected:
-                    is_maximal = not any(reject.is_adjacent for reject in rejected)
-                else:
-                    is_maximal = not rejected
-                if is_maximal:
-                    self.count += 1
-                    print(self.count)
+            if self.connected and assignments:
+                is_maximal = not any(reject.is_adjacent for reject in rejected)
+            else:
+                is_maximal = not rejected
+            if is_maximal:
+                self.count += 1
+                print(self.count)
             return
         v = label_class.G_nodes.pop()
         H_nodes = label_class.H_nodes[:]
