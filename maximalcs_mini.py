@@ -3,10 +3,10 @@ import itertools
 
 
 class Graph(object):
-    def __init__(self, n):
+    def __init__(self, n, labels):
         self.n = n
         self.adjmat = [[0] * n for _ in range(n)]
-        self.labels = [0] * n
+        self.labels = labels
 
     def add_edge(self, v, w):
         self.adjmat[v][w] = 1
@@ -109,18 +109,13 @@ def read_instance(filename):
         lines = [line.strip().split() for line in f.readlines()]
     n = int(lines[0][0])
     edge_count = int(lines[0][1])
-    labels = lines[1]
-    e_lines = lines[2:]
-    G = Graph(n)
-    G.labels = labels
-    for e in e_lines:
+    G = Graph(n, lines[1])
+    for e in lines[2:]:
         G.add_edge(int(e[0]), int(e[1]))
     return G
 
 
-def main(G0, G1):
-    print(maximal_common_subgraphs(G0, G1, connected=True))
-
-
 if __name__ == "__main__":
-    main(read_instance(sys.argv[1]), read_instance(sys.argv[2]))
+    G = read_instance(sys.argv[1])
+    H = read_instance(sys.argv[2])
+    print(maximal_common_subgraphs(G, H, connected=True))
