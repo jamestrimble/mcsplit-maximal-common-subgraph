@@ -1,5 +1,4 @@
 import sys
-import itertools
 import networkx as nx
 
 
