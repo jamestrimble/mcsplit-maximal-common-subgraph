@@ -64,18 +64,27 @@ class PartitioningMCISFinder(object):
 
     def select_label_class(self, label_classes, assignment_count):
         if self.connected and assignment_count > 0:
-            candidates = [lc for lc in label_classes if lc.is_adjacent and len(lc.G_nodes) > lc.X_count]
+            candidates = [
+                lc
+                for lc in label_classes
+                if lc.is_adjacent and len(lc.G_nodes) > lc.X_count
+            ]
         else:
             candidates = [lc for lc in label_classes if len(lc.G_nodes) > lc.X_count]
         if not candidates:
             return None
-        return min(candidates, key=lambda lc: max(len(lc.G_nodes) - lc.X_count, len(lc.H_nodes)))
+        return min(
+            candidates,
+            key=lambda lc: max(len(lc.G_nodes) - lc.X_count, len(lc.H_nodes)),
+        )
 
     def search(self, label_classes, assignments, X):
         label_class = self.select_label_class(label_classes, len(assignments))
         if label_class is None:
             if self.connected and assignments:
-                is_maximal = not any(lc.X_count and lc.is_adjacent for lc in label_classes)
+                is_maximal = not any(
+                    lc.X_count and lc.is_adjacent for lc in label_classes
+                )
             else:
                 is_maximal = not any(lc.X_count for lc in label_classes)
             if is_maximal:

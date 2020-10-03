@@ -6,8 +6,8 @@ p = float(sys.argv[2])
 labelmod = int(sys.argv[3])
 
 edges = []
-for i in range(n-1):
-    for j in range(i+1, n):
+for i in range(n - 1):
+    for j in range(i + 1, n):
         if random.random() < p:
             edges.append((i, j))
 

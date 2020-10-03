@@ -79,7 +79,9 @@ class PartitioningMCISFinder(object):
         label_class = self.select_label_class(label_classes, len(assignments))
         if label_class is None:
             if self.connected and assignments:
-                is_maximal = not any(lc.X_G_nodes and lc.is_adjacent for lc in label_classes)
+                is_maximal = not any(
+                    lc.X_G_nodes and lc.is_adjacent for lc in label_classes
+                )
             else:
                 is_maximal = not any(lc.X_G_nodes for lc in label_classes)
             if is_maximal:
