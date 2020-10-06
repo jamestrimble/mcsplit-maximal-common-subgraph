@@ -13,6 +13,8 @@ class Graph(object):
 
 
 class LabelClass(object):
+    __slots__ = ['G_nodes', 'H_nodes', 'is_adjacent', 'X_count']
+
     def __init__(self, is_adjacent):
         self.G_nodes = []
         self.H_nodes = []
@@ -26,14 +28,19 @@ class LabelClass(object):
 def refine_label_classes(G, H, label_classes, v, w, X):
     new_label_classes = []
     for lc in label_classes:
+        if not lc.G_nodes or not lc.H_nodes:
+            # an optimisation
+            continue
         label_to_new_lc = [LabelClass(lc.is_adjacent), LabelClass(True)]
+        G_adjrow = G.adjmat[v]
         for u in lc.G_nodes:
-            edge_label = G.adjmat[v][u]
-            label_to_new_lc[edge_label].G_nodes.append(u)
-            label_to_new_lc[edge_label].X_count += X[u]
+            new_lc = label_to_new_lc[G_adjrow[u]]
+            new_lc.G_nodes.append(u)
+            new_lc.X_count += X[u]
+        H_adjrow = H.adjmat[w]
         for u in lc.H_nodes:
-            edge_label = H.adjmat[w][u]
-            label_to_new_lc[edge_label].H_nodes.append(u)
+            new_lc = label_to_new_lc[H_adjrow[u]]
+            new_lc.H_nodes.append(u)
         for new_lc in label_to_new_lc:
             if new_lc.G_nodes and new_lc.H_nodes:
                 new_label_classes.append(new_lc)
