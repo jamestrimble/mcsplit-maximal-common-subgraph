@@ -42,18 +42,14 @@ def refine_label_classes(G, H, label_classes, v, w, X):
 
 def select_label_class(connected, label_classes, assignment_count):
     if connected and assignment_count > 0:
-        candidates = [
-            lc
-            for lc in label_classes
-            if lc.is_adjacent and len(lc.G_nodes) > lc.X_count
-        ]
+        for lc in label_classes:
+            if lc.is_adjacent and len(lc.G_nodes) > lc.X_count:
+                return lc
     else:
-        candidates = [lc for lc in label_classes if len(lc.G_nodes) > lc.X_count]
-    if not candidates:
-        return None
-    return min(
-        candidates, key=lambda lc: max(len(lc.G_nodes) - lc.X_count, len(lc.H_nodes))
-    )
+        for lc in label_classes:
+            if len(lc.G_nodes) > lc.X_count:
+                return lc
+    return None
 
 
 def search(G, H, connected, label_classes, assignments, X):
