@@ -29,7 +29,7 @@ class LabelClass(object):
         return f"<{self.G_nodes}, {self.H_nodes}, {self.is_adjacent}, {self.X_count}>"
 
 
-def make_adjacent_label_classes(G, H, left, right, X, D_G, D_H):
+def make_adjacent_label_classes(G, H, left, right, X):
     new_label_classes = []
     label_to_new_lc = {}
     for u in left:
@@ -96,29 +96,26 @@ def search(G, H, label_classes, assignments, X, D_G, D_H):
     del label_class.G_nodes[i]
     H_nodes = label_class.H_nodes[:]
     count = 0
-    left = [u for u in G.adj_lists[v] if u in D_G]
-#    print("assignments", assignments)
-#    print("left", left)
-#    print("D_G", sorted(D_G))
+    left = [u for u in G.adj_lists[v] if D_G[u]]
     for u in left:
-        D_G.remove(u)
+        D_G[u] = 0
 #    print("v!", v)
     for w in H_nodes:
         label_class.H_nodes[:] = [u for u in H_nodes if u != w]
         assignments[v] = w
-        right = [u for u in H.adj_lists[w] if u in D_H]
+        right = [u for u in H.adj_lists[w] if D_H[u]]
         for u in right:
-            D_H.remove(u)
+            D_H[u] = 0
         new_label_classes = (
             refine_label_classes(G, H, label_classes, v, w, X) +
-            make_adjacent_label_classes(G, H, left, right, X, D_G, D_H)
+            make_adjacent_label_classes(G, H, left, right, X)
         )
         count += search(G, H, new_label_classes, assignments, X, D_G, D_H)
         del assignments[v]
         for u in right:
-            D_H.add(u)
+            D_H[u] = 1
     for u in left:
-        D_G.add(u)
+        D_G[u] = 1
     label_class.G_nodes.append(v)
     label_class.H_nodes[:] = H_nodes
     X[v] = 1
@@ -136,33 +133,33 @@ def start_search(G, H, label_classes):
         return 1
     count = 0
     X = [0] * G.n
-    D_G = set(range(G.n))
-    D_H = set(range(H.n))
+    D_G = [1] * G.n
+    D_H = [1] * G.n
     for label_class in label_classes:
 #        print("! ", label_class.H_nodes)
         for v in label_class.G_nodes:
-            D_G.remove(v)
+            D_G[v] = 0
 #            print("!!!!", sorted(D_G))
             left = G.adj_lists[v]
             for u in G.adj_lists[v]:
-                D_G.remove(u)
+                D_G[u] = 0
             for w in label_class.H_nodes:
 #                print("w", w)
                 right = H.adj_lists[w]
-                D_H.remove(w)
+                D_H[w] = 0
                 for u in H.adj_lists[w]:
-                    D_H.remove(u)
-                lcs = make_adjacent_label_classes(G, H, left, right, X, D_G, D_H)
+                    D_H[u] = 0
+                lcs = make_adjacent_label_classes(G, H, left, right, X)
 #                print("!!!", sorted(D_G))
 #                print("   ", v, w)
 #                print(lcs)
                 count += search(G, H, lcs, {v: w}, X, D_G, D_H)
-                D_H.add(w)
+                D_H[w] = 1
                 for u in H.adj_lists[w]:
-                    D_H.add(u)
-            D_G.add(v)
+                    D_H[u] = 1
+            D_G[v] = 1
             for u in G.adj_lists[v]:
-                D_G.add(u)
+                D_G[u] = 1
             X[v] = 1
     return count
 
