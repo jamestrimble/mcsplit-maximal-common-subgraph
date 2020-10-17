@@ -98,14 +98,14 @@ def search(G, H, label_classes, assignments, X, D_G, D_H):
     count = 0
     left = [u for u in G.adj_lists[v] if D_G[u]]
     for u in left:
-        D_G[u] = 0
+        D_G[u] = False
 #    print("v!", v)
     for w in H_nodes:
         label_class.H_nodes[:] = [u for u in H_nodes if u != w]
         assignments[v] = w
         right = [u for u in H.adj_lists[w] if D_H[u]]
         for u in right:
-            D_H[u] = 0
+            D_H[u] = False
         new_label_classes = (
             refine_label_classes(G, H, label_classes, v, w, X) +
             make_adjacent_label_classes(G, H, left, right, X)
@@ -113,9 +113,9 @@ def search(G, H, label_classes, assignments, X, D_G, D_H):
         count += search(G, H, new_label_classes, assignments, X, D_G, D_H)
         del assignments[v]
         for u in right:
-            D_H[u] = 1
+            D_H[u] = True
     for u in left:
-        D_G[u] = 1
+        D_G[u] = True
     label_class.G_nodes.append(v)
     label_class.H_nodes[:] = H_nodes
     X[v] = 1
@@ -133,33 +133,33 @@ def start_search(G, H, label_classes):
         return 1
     count = 0
     X = [0] * G.n
-    D_G = [1] * G.n
-    D_H = [1] * G.n
+    D_G = [True] * G.n
+    D_H = [True] * G.n
     for label_class in label_classes:
 #        print("! ", label_class.H_nodes)
         for v in label_class.G_nodes:
-            D_G[v] = 0
+            D_G[v] = False
 #            print("!!!!", sorted(D_G))
             left = G.adj_lists[v]
             for u in G.adj_lists[v]:
-                D_G[u] = 0
+                D_G[u] = False
             for w in label_class.H_nodes:
 #                print("w", w)
                 right = H.adj_lists[w]
-                D_H[w] = 0
+                D_H[w] = False
                 for u in H.adj_lists[w]:
-                    D_H[u] = 0
+                    D_H[u] = False
                 lcs = make_adjacent_label_classes(G, H, left, right, X)
 #                print("!!!", sorted(D_G))
 #                print("   ", v, w)
 #                print(lcs)
                 count += search(G, H, lcs, {v: w}, X, D_G, D_H)
-                D_H[w] = 1
+                D_H[w] = True
                 for u in H.adj_lists[w]:
-                    D_H[u] = 1
-            D_G[v] = 1
+                    D_H[u] = True
+            D_G[v] = True
             for u in G.adj_lists[v]:
-                D_G[u] = 1
+                D_G[u] = True
             X[v] = 1
     return count
 
