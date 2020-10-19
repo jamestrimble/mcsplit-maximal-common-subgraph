@@ -117,9 +117,15 @@ struct VtxPair {
     VtxPair(int v, int w): v(v), w(w) {}
 };
 
+using Iter = std::vector<int>::iterator;
+
 struct Bidomain {
-    int l,        r;        // start indices of left and right sets
-    int left_len, right_len;
+    Iter l_start;
+    Iter r_start;
+    Iter l_end;
+    Iter r_end;
+//    int l,        r;        // start indices of left and right sets
+//    int left_len, right_len;
     bool is_adjacent;
     int X_count;
 };
@@ -146,12 +152,12 @@ void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
     for (unsigned int i=0; i<domains.size(); i++) {
         struct Bidomain bd = domains[i];
         cout << "Left  ";
-        for (int j=0; j<bd.left_len; j++)
-            cout << left[bd.l + j] << " ";
+        for (Iter it=bd.l_start; it!=bd.l_end; it++)
+            cout << *it << " ";
         cout << std::endl;
         cout << "Right  ";
-        for (int j=0; j<bd.right_len; j++)
-            cout << right[bd.r + j] << " ";
+        for (Iter it=bd.r_start; it!=bd.r_end; it++)
+            cout << *it << " ";
         cout << std::endl;
     }
     cout << "\n" << std::endl;
@@ -178,19 +184,12 @@ bool check_sol(const Graph & g0, const Graph & g1 , const vector<VtxPair> & solu
     return true;
 }
 
-int calc_bound(const vector<Bidomain>& domains) {
-    int bound = 0;
-    for (const Bidomain &bd : domains) {
-        bound += std::min(bd.left_len, bd.right_len);
-    }
-    return bound;
-}
-
-int find_first_val(const vector<int>& arr, int start_idx, int len,
-        vector<bool> & X) {
-    for (int i=0; i<len; i++) {
-        int v = arr[start_idx + i];
+int find_and_remove_first_val(Bidomain & bd, vector<bool> & X) {
+    for (Iter it=bd.l_start; it!=bd.l_end; it++) {
+        int v = *it;
         if (!X[v]) {
+            bd.l_end--;
+            std::swap(*it, *bd.l_end);
             return v;
         }
     }
@@ -202,7 +201,7 @@ int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
 {
     for (unsigned int i=0; i<domains.size(); i++) {
         const Bidomain &bd = domains[i];
-        if (bd.left_len == bd.X_count)
+        if (bd.l_end - bd.l_start == bd.X_count)
             continue;
         if (arguments.connected && current_matching_size>0 && !bd.is_adjacent)
             continue;
@@ -211,13 +210,10 @@ int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
     return -1;
 }
 
-// Returns length of left half of array
-int partition(vector<int>& all_vv, int start, int len, const vector<unsigned int> & adjrow) {
-    auto it = std::partition(
-        all_vv.begin() + start,
-        all_vv.begin() + start + len,
-        [&](const int elem){ return 0 != adjrow[elem]; });
-    return it - (all_vv.begin() + start);
+// Returns iter to one-past-end of left part
+Iter partition(Iter start, Iter end, const vector<unsigned int> & adjrow) {
+    return std::partition(start, end,
+            [&](const int elem){ return 0 != adjrow[elem]; });
 }
 
 vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
@@ -227,62 +223,46 @@ vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
     vector<Bidomain> new_d;
     new_d.reserve(d.size());
     for (const Bidomain &old_bd : d) {
-        int l = old_bd.l;
-        int r = old_bd.r;
-        // After these two partitions, left_len and right_len are the lengths of the
-        // arrays of vertices with edges from v or w (int the directed case, edges
-        // either from or to v or w)
-        int left_len = partition(left, l, old_bd.left_len, g0.adjmat[v]);
-        int right_len = partition(right, r, old_bd.right_len, g1.adjmat[w]);
-        int left_len_noedge = old_bd.left_len - left_len;
-        int right_len_noedge = old_bd.right_len - right_len;
-        if (left_len_noedge && right_len_noedge) {
+////        int l = old_bd.l;
+////        int r = old_bd.r;
+        Iter l_middle = partition(old_bd.l_start, old_bd.l_end, g0.adjmat[v]);
+        Iter r_middle = partition(old_bd.r_start, old_bd.r_end, g1.adjmat[w]);
+//        int left_len_noedge = old_bd.left_len - left_len;
+//        int right_len_noedge = old_bd.right_len - right_len;
+        if (l_middle != old_bd.l_end && r_middle != old_bd.r_end) {
             int X_count = 0;
-            for (int i=l+left_len; i<l+left_len+left_len_noedge; i++) {
-                X_count += X[left[i]];
+            for (Iter it=l_middle; it!=old_bd.l_end; it++) {
+                X_count += X[*it];
             }
-            new_d.push_back({l+left_len, r+right_len, left_len_noedge,
-                    right_len_noedge, old_bd.is_adjacent, X_count});
+            new_d.push_back({l_middle, r_middle, old_bd.l_end, old_bd.r_end,
+                    old_bd.is_adjacent, X_count});
         }
-        if (left_len && right_len) {
+        if (old_bd.l_start != l_middle && old_bd.r_start != r_middle) {
             int X_count = 0;
-            for (int i=l; i<l+left_len; i++) {
-                X_count += X[left[i]];
+            for (Iter it=old_bd.l_start; it!=l_middle; it++) {
+                X_count += X[*it];
             }
-            new_d.push_back({l, r, left_len, right_len, true, X_count});
+            new_d.push_back({old_bd.l_start, old_bd.r_start, l_middle, r_middle, true, X_count});
         }
     }
     return new_d;
 }
 
-// returns the index of the smallest value in arr that is >w.
+// returns and Iter to the smallest value in arr that is >w.
 // Assumption: such a value exists
 // Assumption: arr contains no duplicates
-// Assumption: arr has no values==INT_MAX
-int index_of_next_smallest(const vector<int>& arr, int start_idx, int len, int w) {
-    int idx = -1;
+// Assumption: arr does not contain INT_MAX
+Iter iter_to_next_smallest(Iter start, Iter end, int w) {
+    Iter retval;
     int smallest = INT_MAX;
-    for (int i=0; i<len; i++) {
-        if (arr[start_idx + i]>w && arr[start_idx + i]<smallest) {
-            smallest = arr[start_idx + i];
-            idx = i;
+    for (Iter it=start; it!=end; it++) {
+        if (*it>w && *it<smallest) {
+            smallest = *it;
+            retval=it;
         }
     }
-    return idx;
+    return retval;
 }
-
-void remove_vtx_from_left_domain(vector<int>& left, Bidomain& bd, int v)
-{
-    int i = 0;
-    while(left[bd.l + i] != v) i++;
-    std::swap(left[bd.l+i], left[bd.l+bd.left_len-1]);
-    bd.left_len--;
-}
-
-//void remove_bidomain(vector<Bidomain>& domains, int idx) {
-//    domains[idx] = domains[domains.size()-1];
-//    domains.pop_back();
-//}
 
 void solve(const Graph & g0, const Graph & g1,
         vector<VtxPair> & current, vector<Bidomain> & domains,
@@ -321,27 +301,27 @@ void solve(const Graph & g0, const Graph & g1,
     }
     Bidomain &bd = domains[bd_idx];
 
-    int v = find_first_val(left, bd.l, bd.left_len, X);
-    remove_vtx_from_left_domain(left, domains[bd_idx], v);
+    int v = find_and_remove_first_val(bd, X);
 
     // Try assigning v to each vertex w beginning at bd.r, in turn
     int w = -1;
-    bd.right_len--;
-    for (int i=0; i<=bd.right_len; i++) {
-        int idx = index_of_next_smallest(right, bd.r, bd.right_len+1, w);
-        w = right[bd.r + idx];
+    bd.r_end--;
+    int num_r_vals = bd.r_end - bd.r_start;
+    for (int i=0; i<=num_r_vals; i++) {
+        Iter iter = iter_to_next_smallest(bd.r_start, bd.r_end+1, w);
+        w = *iter;
 
         // swap w to the end of its colour class
-        right[bd.r + idx] = right[bd.r + bd.right_len];
-        right[bd.r + bd.right_len] = w;
+        *iter = *bd.r_end;
+        *bd.r_end = w;
 
         auto new_domains = filter_domains(domains, left, right, g0, g1, v, w, X);
         current.push_back(VtxPair(v, w));
         solve(g0, g1, current, new_domains, left, right, matching_size_goal, X);
         current.pop_back();
     }
-    bd.left_len++;
-    bd.right_len++;
+    bd.l_end++;
+    bd.r_end++;
     X[v] = true;
     ++bd.X_count;
     solve(g0, g1, current, domains, left, right, matching_size_goal, X);
@@ -351,6 +331,8 @@ void solve(const Graph & g0, const Graph & g1,
 void mcs(const Graph & g0, const Graph & g1) {
     vector<int> left;  // the buffer of vertex indices for the left partitions
     vector<int> right;  // the buffer of vertex indices for the right partitions
+    left.reserve(g0.n);
+    right.reserve(g1.n);
 
     auto domains = vector<Bidomain> {};
 
@@ -367,8 +349,8 @@ void mcs(const Graph & g0, const Graph & g1) {
 
     // Create a bidomain for each label that appears in both graphs
     for (unsigned int label : labels) {
-        int start_l = left.size();
-        int start_r = right.size();
+        Iter start_l = left.end();
+        Iter start_r = right.end();
 
         for (int i=0; i<g0.n; i++)
             if (g0.label[i]==label)
@@ -377,9 +359,7 @@ void mcs(const Graph & g0, const Graph & g1) {
             if (g1.label[i]==label)
                 right.push_back(i);
 
-        int left_len = left.size() - start_l;
-        int right_len = right.size() - start_r;
-        domains.push_back({start_l, start_r, left_len, right_len, false, 0});
+        domains.push_back({start_l, start_r, left.end(), right.end(), false, 0});
     }
 
     vector<VtxPair> current;
