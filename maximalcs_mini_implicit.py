@@ -138,7 +138,7 @@ def start_search(G, H, label_classes):
     count = 0
     X = [0] * G.n
     D_G = [True] * G.n
-    D_H = [True] * G.n
+    D_H = [True] * H.n
     for label_class in label_classes:
         for v in label_class.G_nodes:
             left = G.adj_lists[v]
