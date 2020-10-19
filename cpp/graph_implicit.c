@@ -16,7 +16,7 @@ static void fail(std::string msg) {
 Graph::Graph(unsigned int n) {
     this->n = n;
     label = std::vector<unsigned int>(n, 0u);
-    adjmat = {n, std::vector<unsigned int>(n, 0)};
+    adjmat = {n, std::vector<unsigned char>(n, 0)};
     adjlists = {n, std::vector<int>()};
 }
 

@@ -192,7 +192,7 @@ int select_bidomain(const vector<Bidomain>& domains)
 }
 
 // Returns iter to one-past-end of left part
-Iter partition(Iter start, Iter end, const vector<unsigned int> & adjrow) {
+Iter partition(Iter start, Iter end, const vector<unsigned char> & adjrow) {
     return std::partition(start, end,
             [&](const int elem){ return 0 != adjrow[elem]; });
 }
