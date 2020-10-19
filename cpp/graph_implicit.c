@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "graph_implicit.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,17 +17,7 @@ Graph::Graph(unsigned int n) {
     this->n = n;
     label = std::vector<unsigned int>(n, 0u);
     adjmat = {n, std::vector<unsigned int>(n, 0)};
-}
-
-Graph induced_subgraph(struct Graph& g, std::vector<int> vv) {
-    Graph subg(vv.size());
-    for (int i=0; i<subg.n; i++)
-        for (int j=0; j<subg.n; j++)
-            subg.adjmat[i][j] = g.adjmat[vv[i]][vv[j]];
-
-    for (int i=0; i<subg.n; i++)
-        subg.label[i] = g.label[vv[i]];
-    return subg;
+    adjlists = {n, std::vector<int>()};
 }
 
 void add_edge(Graph& g, int v, int w, bool directed=false, unsigned int val=1) {
@@ -64,6 +54,14 @@ struct Graph readGraph(char* filename) {
         int v, w;
         fscanf(f, "%d%d", &v, &w);
         add_edge(g, v, w);
+    }
+
+    for (int i=0; i<n; i++) {
+        for (int j=0; j<n; j++) {
+            if (g.adjmat[i][j]) {
+                g.adjlists[i].push_back(j);
+            }
+        }
     }
 
     return g;
