@@ -37,7 +37,6 @@ enum Heuristic { min_max, min_product };
 static char doc[] = "Find a maximum clique in a graph in DIMACS format";
 static char args_doc[] = "FILENAME1 FILENAME2";
 static struct argp_option options[] = {
-    {"quiet", 'q', 0, 0, "Quiet output"},
     {"verbose", 'v', 0, 0, "Verbose output"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
     {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
@@ -45,7 +44,6 @@ static struct argp_option options[] = {
 };
 
 static struct {
-    bool quiet;
     bool verbose;
     bool connected;
     char *filename1;
@@ -57,7 +55,6 @@ static struct {
 static std::atomic<bool> abort_due_to_timeout;
 
 void set_default_arguments() {
-    arguments.quiet = false;
     arguments.verbose = false;
     arguments.connected = false;
     arguments.filename1 = NULL;
@@ -68,9 +65,6 @@ void set_default_arguments() {
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
     switch (key) {
-        case 'q':
-            arguments.quiet = true;
-            break;
         case 'v':
             arguments.verbose = true;
             break;
