@@ -34,7 +34,7 @@ enum Heuristic { min_max, min_product };
                              Command-line arguments
 *******************************************************************************/
 
-static char doc[] = "Find a maximum clique in a graph in DIMACS format";
+static char doc[] = "Find maximal common induced subgraphs";
 static char args_doc[] = "FILENAME1 FILENAME2";
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output"},
@@ -118,8 +118,6 @@ struct Bidomain {
     Iter r_start;
     Iter l_end;
     Iter r_end;
-//    int l,        r;        // start indices of left and right sets
-//    int left_len, right_len;
     bool is_adjacent;
     int X_count;
 };
@@ -133,8 +131,7 @@ void show_current(const vector<VtxPair>& current)
     cout << std::endl;
 }
 
-void show(const vector<VtxPair>& current, const vector<Bidomain> &domains,
-        const vector<int>& left, const vector<int>& right)
+void show(const vector<VtxPair>& current, const vector<Bidomain> &domains)
 {
     cout << "Nodes: " << nodes << std::endl;
     cout << "Length of current assignment: " << current.size() << std::endl;
@@ -190,8 +187,7 @@ int find_and_remove_first_val(Bidomain & bd, vector<bool> & X) {
     return -1;
 }
 
-int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
-        int current_matching_size)
+int select_bidomain(const vector<Bidomain>& domains, int current_matching_size)
 {
     for (unsigned int i=0; i<domains.size(); i++) {
         const Bidomain &bd = domains[i];
@@ -210,8 +206,8 @@ Iter partition(Iter start, Iter end, const vector<unsigned int> & adjrow) {
             [&](const int elem){ return 0 != adjrow[elem]; });
 }
 
-vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
-        vector<int> & right, const Graph & g0, const Graph & g1, int v, int w,
+vector<Bidomain> filter_domains(const vector<Bidomain> & d,
+        const Graph & g0, const Graph & g1, int v, int w,
         vector<bool> & X)
 {
     vector<Bidomain> new_d;
@@ -260,16 +256,15 @@ Iter iter_to_next_smallest(Iter start, Iter end, int w) {
 
 void solve(const Graph & g0, const Graph & g1,
         vector<VtxPair> & current, vector<Bidomain> & domains,
-        vector<int> & left, vector<int> & right, unsigned int matching_size_goal,
-        vector<bool> & X)
+        unsigned int matching_size_goal, vector<bool> & X)
 {
     if (abort_due_to_timeout)
         return;
 
-    if (arguments.verbose) show(current, domains, left, right);
+    if (arguments.verbose) show(current, domains);
     nodes++;
 
-    int bd_idx = select_bidomain(domains, left, current.size());
+    int bd_idx = select_bidomain(domains, current.size());
     if (bd_idx == -1) {
         bool is_maximal = true;
         if (arguments.connected && !current.empty()) {
@@ -309,16 +304,16 @@ void solve(const Graph & g0, const Graph & g1,
         *iter = *bd.r_end;
         *bd.r_end = w;
 
-        auto new_domains = filter_domains(domains, left, right, g0, g1, v, w, X);
+        auto new_domains = filter_domains(domains, g0, g1, v, w, X);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, current, new_domains, left, right, matching_size_goal, X);
+        solve(g0, g1, current, new_domains, matching_size_goal, X);
         current.pop_back();
     }
     bd.l_end++;
     bd.r_end++;
     X[v] = true;
     ++bd.X_count;
-    solve(g0, g1, current, domains, left, right, matching_size_goal, X);
+    solve(g0, g1, current, domains, matching_size_goal, X);
     X[v] = false;
 }
 
@@ -358,7 +353,7 @@ void mcs(const Graph & g0, const Graph & g1) {
 
     vector<VtxPair> current;
     vector<bool> X(g0.n);
-    solve(g0, g1, current, domains, left, right, 1, X);
+    solve(g0, g1, current, domains, 1, X);
 }
 
 vector<int> calculate_degrees(const Graph & g) {
