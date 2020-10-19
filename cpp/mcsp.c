@@ -213,14 +213,11 @@ int select_bidomain(const vector<Bidomain>& domains, const vector<int> & left,
 
 // Returns length of left half of array
 int partition(vector<int>& all_vv, int start, int len, const vector<unsigned int> & adjrow) {
-    int i=0;
-    for (int j=0; j<len; j++) {
-        if (adjrow[all_vv[start+j]]) {
-            std::swap(all_vv[start+i], all_vv[start+j]);
-            i++;
-        }
-    }
-    return i;
+    auto it = std::partition(
+        all_vv.begin() + start,
+        all_vv.begin() + start + len,
+        [&](const int elem){ return 0 != adjrow[elem]; });
+    return it - (all_vv.begin() + start);
 }
 
 vector<Bidomain> filter_domains(const vector<Bidomain> & d, vector<int> & left,
