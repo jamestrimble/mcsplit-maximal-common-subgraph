@@ -256,7 +256,7 @@ Iter iter_to_next_smallest(Iter start, Iter end, int w) {
 
 void solve(const Graph & g0, const Graph & g1,
         vector<VtxPair> & current, vector<Bidomain> & domains,
-        unsigned int matching_size_goal, vector<bool> & X)
+        vector<bool> & X)
 {
     if (abort_due_to_timeout)
         return;
@@ -306,14 +306,14 @@ void solve(const Graph & g0, const Graph & g1,
 
         auto new_domains = filter_domains(domains, g0, g1, v, w, X);
         current.push_back(VtxPair(v, w));
-        solve(g0, g1, current, new_domains, matching_size_goal, X);
+        solve(g0, g1, current, new_domains, X);
         current.pop_back();
     }
     bd.l_end++;
     bd.r_end++;
     X[v] = true;
     ++bd.X_count;
-    solve(g0, g1, current, domains, matching_size_goal, X);
+    solve(g0, g1, current, domains, X);
     X[v] = false;
 }
 
@@ -353,7 +353,7 @@ void mcs(const Graph & g0, const Graph & g1) {
 
     vector<VtxPair> current;
     vector<bool> X(g0.n);
-    solve(g0, g1, current, domains, 1, X);
+    solve(g0, g1, current, domains, X);
 }
 
 vector<int> calculate_degrees(const Graph & g) {
