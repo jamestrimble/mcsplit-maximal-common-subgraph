@@ -17,16 +17,15 @@ class Graph(object):
 
 
 class LabelClass(object):
-    __slots__ = ['G_nodes', 'H_nodes', 'is_adjacent', 'X_count']
+    __slots__ = ['G_nodes', 'H_nodes', 'X_count']
 
-    def __init__(self, is_adjacent):
+    def __init__(self):
         self.G_nodes = []
         self.H_nodes = []
-        self.is_adjacent = is_adjacent
         self.X_count = 0
 
     def __repr__(self):
-        return f"<{self.G_nodes}, {self.H_nodes}, {self.is_adjacent}, {self.X_count}>"
+        return f"<{self.G_nodes}, {self.H_nodes}, {self.X_count}>"
 
 
 def make_adjacent_label_classes(G, H, left, right, X):
@@ -35,7 +34,7 @@ def make_adjacent_label_classes(G, H, left, right, X):
     for u in left:
         label = G.labels[u]
         if label not in label_to_new_lc:
-            label_to_new_lc[label] = LabelClass(True)
+            label_to_new_lc[label] = LabelClass()
         new_lc = label_to_new_lc[label]
         new_lc.G_nodes.append(u)
         new_lc.X_count += X[u]
@@ -57,7 +56,7 @@ def refine_label_classes(G, H, label_classes, v, w, X):
         if not lc.G_nodes or not lc.H_nodes:
             # an optimisation
             continue
-        label_to_new_lc = [LabelClass(lc.is_adjacent), LabelClass(True)]
+        label_to_new_lc = [LabelClass(), LabelClass()]
         G_adjrow = G.adjmat[v]
         for u in lc.G_nodes:
             new_lc = label_to_new_lc[G_adjrow[u]]
@@ -75,7 +74,7 @@ def refine_label_classes(G, H, label_classes, v, w, X):
 
 def select_label_class(label_classes):
     for lc in label_classes:
-        if lc.is_adjacent and len(lc.G_nodes) > lc.X_count:
+        if len(lc.G_nodes) > lc.X_count:
             return lc
     return None
 
@@ -162,7 +161,7 @@ def start_search(G, H, label_classes):
 def find_maximal_common_subgraphs(G, H):
     G_labels = set(G.labels)
     H_labels = set(H.labels)
-    label_classes = {label: LabelClass(False) for label in G_labels & H_labels}
+    label_classes = {label: LabelClass() for label in G_labels & H_labels}
     for v in range(G.n):
         label = G.labels[v]
         if label in label_classes:
