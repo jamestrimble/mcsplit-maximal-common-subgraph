@@ -22,3 +22,6 @@ The `cpp` directory uses arrays of arrays for adjacency matrices, while
 the `cpp-using-sets` directory uses vectors of sets.  The latter is
 probably preferable for comparison with Versari's code, and the performance
 penalty seems fairly small.
+
+The `mcsp_implicit_b` version is structured slightly more like Versari's
+`koch_implicit`.
