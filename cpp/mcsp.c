@@ -274,13 +274,8 @@ void solve(const Graph & g0, const Graph & g1,
                     break;
                 }
             }
-        } else {
-            for (auto & bd : domains) {
-                if (bd.X_count) {
-                    is_maximal = false;
-                    break;
-                }
-            }
+        } else if (!domains.empty()) {
+            is_maximal = false;
         }
         if (is_maximal) {
             show_current(current);

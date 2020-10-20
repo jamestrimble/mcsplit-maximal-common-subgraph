@@ -302,14 +302,14 @@ void solve(const Graph & g0, const Graph & g1,
     if (arguments.verbose) show(current, domains);
     nodes++;
 
-    vector<int> left;
-    vector<int> right;
     if (domains.empty()) {
         // current is maximal
         show_current(current);
         return;
     }
 
+    vector<int> left;
+    vector<int> right;
     vector<int> added_to_X;
 
     for (auto & bd : domains) {

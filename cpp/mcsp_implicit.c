@@ -301,19 +301,13 @@ void solve(const Graph & g0, const Graph & g1,
     if (arguments.verbose) show(current, domains);
     nodes++;
 
+    if (domains.empty()) {
+        // current is maximal
+        show_current(current);
+        return;
+    }
     int bd_idx = select_bidomain(domains);
     if (bd_idx == -1) {
-        bool is_maximal = true;
-        for (auto & bd : domains) {
-            if (bd.X_count) {
-                is_maximal = false;
-                break;
-            }
-        }
-        if (is_maximal) {
-            show_current(current);
-//            std::cout << 1 << std::endl;
-        }
         return;
     }
     Bidomain &bd = domains[bd_idx];
