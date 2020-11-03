@@ -66,7 +66,7 @@ auto read_vf(const std::string & filename, bool unlabelled, bool undirected) -> 
     std::cout << std::endl;
 
     for (auto e : edges)
-        std::cout << "e " << e.v << " " << e.w << std::endl;
+        std::cout << e.v << " " << e.w << std::endl;
 }
 
 int main(int argc, char **argv) {
