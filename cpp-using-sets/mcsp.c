@@ -39,6 +39,7 @@ static char doc[] = "Find maximal common induced subgraphs";
 static char args_doc[] = "FILENAME1 FILENAME2";
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output"},
+    {"quiet", 'q', 0, 0, "Quiet output; this runs faster"},
     {"connected", 'c', 0, 0, "Solve max common CONNECTED subgraph problem"},
     {"timeout", 't', "timeout", 0, "Specify a timeout (seconds)"},
     { 0 }
@@ -46,6 +47,7 @@ static struct argp_option options[] = {
 
 static struct {
     bool verbose;
+    bool quiet;
     bool connected;
     char *filename1;
     char *filename2;
@@ -55,19 +57,13 @@ static struct {
 
 static std::atomic<bool> abort_due_to_timeout;
 
-void set_default_arguments() {
-    arguments.verbose = false;
-    arguments.connected = false;
-    arguments.filename1 = NULL;
-    arguments.filename2 = NULL;
-    arguments.timeout = 0;
-    arguments.arg_num = 0;
-}
-
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
     switch (key) {
         case 'v':
             arguments.verbose = true;
+            break;
+        case 'q':
+            arguments.quiet = true;
             break;
         case 'c':
             arguments.connected = true;
@@ -101,6 +97,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 *******************************************************************************/
 
 unsigned long long nodes{ 0 };
+unsigned long long solution_count{ 0 };
 
 /*******************************************************************************
                                  MCS functions
@@ -125,7 +122,10 @@ struct Bidomain {
 
 void show_current(const vector<VtxPair>& current)
 {
-//    cout << current.size() << "   ";
+    ++solution_count;
+    if (arguments.quiet) {
+        return;
+    }
     for (unsigned int i=0; i<current.size(); i++) {
         cout << "  (" << current[i].v << " " << current[i].w << ")";
     }
@@ -357,7 +357,6 @@ int sum(const vector<int> & vec) {
 }
 
 int main(int argc, char** argv) {
-    set_default_arguments();
     argp_parse(&argp, argc, argv, 0, 0, 0);
 
     struct Graph g0 = readGraph(arguments.filename1);
@@ -411,6 +410,7 @@ int main(int argc, char** argv) {
 ////                cout << "(" << solution[j].v << " -> " << solution[j].w << ") ";
 ////    cout << std::endl;
 
+    cout << "Solutions:                  " << solution_count << endl;
     cout << "Nodes:                      " << nodes << endl;
     cout << "CPU time (ms):              " << time_elapsed << endl;
     if (aborted)
