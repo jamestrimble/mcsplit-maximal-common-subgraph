@@ -47,7 +47,7 @@ auto read_vf(const std::string & filename, bool unlabelled, bool undirected) -> 
 			if (e >= size)
 				throw 1;
 
-                        edges.push_back({r+1, e+1});
+                        edges.push_back({r, e});
 			read_word(infile);
 		}
 	}
@@ -56,7 +56,14 @@ auto read_vf(const std::string & filename, bool unlabelled, bool undirected) -> 
     if (! infile.eof())
         throw 0;
 
-    std::cout << "p edge " << size << " 0" << std::endl;
+    std::cout << size << " " << edges.size() << std::endl;
+
+    for (unsigned r = 0 ; r < size ; ++r) {
+        std::cout << 0;
+        if (r != 0)
+            std::cout << " ";
+    }
+    std::cout << std::endl;
 
     for (auto e : edges)
         std::cout << "e " << e.v << " " << e.w << std::endl;
