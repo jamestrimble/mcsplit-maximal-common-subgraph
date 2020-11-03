@@ -59,9 +59,9 @@ auto read_vf(const std::string & filename, bool unlabelled, bool undirected) -> 
     std::cout << size << " " << edges.size() << std::endl;
 
     for (unsigned r = 0 ; r < size ; ++r) {
-        std::cout << 0;
         if (r != 0)
             std::cout << " ";
+        std::cout << 0;
     }
     std::cout << std::endl;
 
